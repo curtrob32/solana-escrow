@@ -1,0 +1,32 @@
+[package]
+name = "escrow"
+version = "0.1.0"
+description = "Trustless SPL / Token-2022 token-for-token escrow"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "escrow"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+
+[dependencies]
+anchor-lang = { version = "1", features = ["init-if-needed"] }
+anchor-spl = "1"
+
+[dev-dependencies]
+litesvm = "0.9"
+litesvm-token = "0.9"
+solana-keypair = "3"
+solana-signer = "3"
+solana-message = "3"
+solana-transaction = "3"
+solana-instruction = "3"
+solana-pubkey = "3"
+solana-program-pack = "3"
