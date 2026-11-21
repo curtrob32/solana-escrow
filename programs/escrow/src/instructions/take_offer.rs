@@ -71,6 +71,8 @@ pub struct TakeOffer<'info> {
     pub vault: Box<InterfaceAccount<'info, TokenAccount>>,
 
     pub associated_token_program: Program<'info, AssociatedToken>,
+    // Classic SPL Token only (see make_offer.rs).
+    #[account(address = anchor_spl::token::ID)]
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
 }

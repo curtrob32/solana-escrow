@@ -45,6 +45,9 @@ pub struct MakeOffer<'info> {
     pub vault: Box<InterfaceAccount<'info, TokenAccount>>,
 
     pub associated_token_program: Program<'info, AssociatedToken>,
+    // Classic SPL Token only: Token-2022 mint extensions (permanent delegate,
+    // transfer hooks, freeze, transfer fees) are not yet handled safely.
+    #[account(address = anchor_spl::token::ID)]
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
 }

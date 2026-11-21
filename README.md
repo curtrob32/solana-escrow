@@ -4,7 +4,9 @@
 
 A trustless, on-chain Dutch-auction swap for Solana. You lock up a token, name a starting price and a floor, and the price falls on its own until a buyer decides it's worth it. No order book. No intermediary. No one holding your funds but code that can't run off with them.
 
-Built with Anchor 1.x. Works with both SPL Token and Token-2022.
+Built with Anchor 1.x. Supports classic SPL Token mints (Token-2022 is deliberately rejected until its mint extensions are handled safely).
+
+**See it first:** open [`app/demo.html`](app/demo.html) in a browser for a live simulation of the auction. It uses the exact same pricing math as the program.
 
 > **Status: early.** The program and tests are written and the security linter is clean, but the code has **not yet been compiled or run** (see [Status](#status-and-honesty)). Treat it as a working draft, not audited software.
 
@@ -90,7 +92,8 @@ The maker cancels and reclaims their token A. Only the maker can do this.
 | Taking an offer twice | The offer account is closed on take, so there's nothing left to spend. |
 | Overpaying | `max_price` is slippage protection for the buyer. |
 | Arithmetic | `checked_*` math with `u128` intermediates, mapped to custom errors. Rounding favors the seller. |
-| Token-2022 transfer fees | The program pays out the vault's *actual* balance, so fees taken on deposit can't strand dust and block closing the vault. |
+| Token-2022 mints | Rejected: `token_program` must be the classic SPL Token program. Permanent delegates, transfer hooks, freeze authorities and transfer fees could otherwise drain or lock the vault. |
+| Vault dust | The program pays out the vault's *actual* balance, so the vault always closes cleanly. |
 | Bad inputs | Rejects zero amounts, an inverted price range (`start < end`), a zero floor, a non-positive duration, and identical mints. |
 | Observability | `OfferMade`, `OfferTaken` and `OfferRefunded` events are emitted for every state change. |
 
