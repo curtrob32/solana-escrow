@@ -53,9 +53,17 @@ pub fn handler(
     ctx: Context<MakeOffer>,
     id: u64,
     offered_amount: u64,
-    wanted_amount: u64,
+    start_price: u64,
+    end_price: u64,
+    duration_secs: i64,
 ) -> Result<()> {
-    require!(offered_amount > 0 && wanted_amount > 0, EscrowError::InvalidAmount);
+    require!(offered_amount > 0, EscrowError::InvalidAmount);
+    require!(end_price > 0 && start_price >= end_price, EscrowError::InvalidPriceRange);
+    require!(duration_secs > 0, EscrowError::InvalidDuration);
+    let start_ts = Clock::get()?.unix_timestamp;
+    let end_ts = start_ts
+        .checked_add(duration_secs)
+        .ok_or(EscrowError::MathOverflow)?;
     require_keys_neq!(
         ctx.accounts.mint_a.key(),
         ctx.accounts.mint_b.key(),
@@ -82,7 +90,10 @@ pub fn handler(
     offer.mint_a = ctx.accounts.mint_a.key();
     offer.mint_b = ctx.accounts.mint_b.key();
     offer.offered_amount = offered_amount;
-    offer.wanted_amount = wanted_amount;
+    offer.start_price = start_price;
+    offer.end_price = end_price;
+    offer.start_ts = start_ts;
+    offer.end_ts = end_ts;
     offer.bump = ctx.bumps.offer;
 
     emit!(OfferMade {
@@ -91,7 +102,10 @@ pub fn handler(
         mint_a: offer.mint_a,
         mint_b: offer.mint_b,
         offered_amount,
-        wanted_amount,
+        start_price,
+        end_price,
+        start_ts,
+        end_ts,
     });
     Ok(())
 }

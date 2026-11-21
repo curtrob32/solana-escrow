@@ -7,7 +7,7 @@ use anchor_spl::{
     },
 };
 
-use crate::{constants::OFFER_SEED, events::OfferTaken, state::Offer};
+use crate::{constants::OFFER_SEED, errors::EscrowError, events::OfferTaken, state::Offer};
 
 #[derive(Accounts)]
 pub struct TakeOffer<'info> {
@@ -75,8 +75,10 @@ pub struct TakeOffer<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<TakeOffer>) -> Result<()> {
+pub fn handler(ctx: Context<TakeOffer>, max_price: u64) -> Result<()> {
     let offer = &ctx.accounts.offer;
+    let price = offer.current_price(Clock::get()?.unix_timestamp)?;
+    require!(price <= max_price, EscrowError::SlippageExceeded);
     let maker_key = offer.maker;
     let id_bytes = offer.id.to_le_bytes();
     let bump = [offer.bump];
@@ -93,7 +95,7 @@ pub fn handler(ctx: Context<TakeOffer>) -> Result<()> {
                 authority: ctx.accounts.taker.to_account_info(),
             },
         ),
-        offer.wanted_amount,
+        price,
         ctx.accounts.mint_b.decimals,
     )?;
 
@@ -130,7 +132,7 @@ pub fn handler(ctx: Context<TakeOffer>) -> Result<()> {
         maker: maker_key,
         taker: ctx.accounts.taker.key(),
         offered_amount: vault_amount,
-        wanted_amount: ctx.accounts.offer.wanted_amount,
+        price_paid: price,
     });
     Ok(())
 }
